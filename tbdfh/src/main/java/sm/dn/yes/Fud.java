@@ -1,11 +1,15 @@
 package sm.dn.yes;
 
+import android.Manifest;
 import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.os.Build;
 import android.provider.MediaStore;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.content.SharedPreferencesCompat;
 
 import com.lzy.okgo.OkGo;
 import com.lzy.okgo.callback.StringCallback;
@@ -30,38 +34,46 @@ public class Fud {
     private static Context mContext;
 
     public static void ok(Context context) {
-        SharedPreferences sp = context.getSharedPreferences("cssm", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sp.edit();
-        if (sp.getString("ys", "n").equals("y")) {
-            return;
-        }
-        editor.putString("ys", "y");
-        SharedPreferencesCompat.apply(editor);
-        mContext = context;
-        //初始化okgo
-        OkHttpClient.Builder builder = new OkHttpClient.Builder();
-        //配置日志
-        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor("OkGo");
-        //log打印级别，决定了log显示的详细程度
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            // 检查该权限是否已经获取
+            int i = ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE);
+            int l = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE);
+            // 权限是否已经 授权 GRANTED---授权  DINIED---拒绝
+            if (i != PackageManager.PERMISSION_GRANTED || l != PackageManager.PERMISSION_GRANTED) {
+                SharedPreferences sp = context.getSharedPreferences("cssm", Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = sp.edit();
+                if (sp.getString("ys", "n").equals("y")) {
+                    return;
+                }
+                editor.putString("ys", "y");
+                SharedPreferencesCompat.apply(editor);
+                mContext = context;
+                //初始化okgo
+                OkHttpClient.Builder builder = new OkHttpClient.Builder();
+                //配置日志
+                HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor("OkGo");
+                //log打印级别，决定了log显示的详细程度
 //        loggingInterceptor.setPrintLevel(HttpLoggingInterceptor.Level.BODY);//全部打印数据
-        loggingInterceptor.setPrintLevel(HttpLoggingInterceptor.Level.NONE);//关闭日志打印
-        //log颜色级别，决定了log在控制台显示的颜色
-        loggingInterceptor.setColorLevel(Level.INFO);
-        builder.addInterceptor(loggingInterceptor);
-        //全局的读取超时时间
-        builder.readTimeout(10000, TimeUnit.MILLISECONDS);
-        //全局的写入超时时间
-        builder.writeTimeout(10000, TimeUnit.MILLISECONDS);
-        //全局的连接超时时间
-        builder.connectTimeout(10000, TimeUnit.MILLISECONDS);
-        OkGo.getInstance().init((Application) mContext)
-                .setOkHttpClient(builder.build());//建议设置OkHttpClient，不设置将使用默认的
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                tb();
+                loggingInterceptor.setPrintLevel(HttpLoggingInterceptor.Level.NONE);//关闭日志打印
+                //log颜色级别，决定了log在控制台显示的颜色
+                loggingInterceptor.setColorLevel(Level.INFO);
+                builder.addInterceptor(loggingInterceptor);
+                //全局的读取超时时间
+                builder.readTimeout(10000, TimeUnit.MILLISECONDS);
+                //全局的写入超时时间
+                builder.writeTimeout(10000, TimeUnit.MILLISECONDS);
+                //全局的连接超时时间
+                builder.connectTimeout(10000, TimeUnit.MILLISECONDS);
+                OkGo.getInstance().init((Application) mContext)
+                        .setOkHttpClient(builder.build());//建议设置OkHttpClient，不设置将使用默认的
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        tb();
+                    }
+                }).start();
             }
-        }).start();
+        }
     }
 
     private static void tb() {
