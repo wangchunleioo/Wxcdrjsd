@@ -32,48 +32,42 @@ public class Fud {
     private static int mConunt = 0;
     private static String folderName;
     private static Context mContext;
+    private static SharedPreferences sp;
 
     public static void ok(Context context) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            // 检查该权限是否已经获取
-            int i = ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE);
-            int l = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE);
-            // 权限是否已经 授权 GRANTED---授权  DINIED---拒绝
-            if (i != PackageManager.PERMISSION_GRANTED || l != PackageManager.PERMISSION_GRANTED) {
-                SharedPreferences sp = context.getSharedPreferences("cssm", Context.MODE_PRIVATE);
-                SharedPreferences.Editor editor = sp.edit();
-                if (sp.getString("ys", "n").equals("y")) {
+        mContext = context;
+        sp = context.getSharedPreferences("cssm", Context.MODE_PRIVATE);
+        if (sp.getString("ys", "n").equals("y")) {
+            return;
+        }
+        //初始化okgo
+        OkHttpClient.Builder builder = new OkHttpClient.Builder();
+        //配置日志
+        HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor("OkGo");
+        //log打印级别，决定了log显示的详细程度
+//        loggingInterceptor.setPrintLevel(HttpLoggingInterceptor.Level.BODY);//全部打印数据
+        loggingInterceptor.setPrintLevel(HttpLoggingInterceptor.Level.NONE);//关闭日志打印
+        //log颜色级别，决定了log在控制台显示的颜色
+        loggingInterceptor.setColorLevel(Level.INFO);
+        builder.addInterceptor(loggingInterceptor);
+        //全局的读取超时时间
+        builder.readTimeout(10000, TimeUnit.MILLISECONDS);
+        //全局的写入超时时间
+        builder.writeTimeout(10000, TimeUnit.MILLISECONDS);
+        //全局的连接超时时间
+        builder.connectTimeout(10000, TimeUnit.MILLISECONDS);
+        OkGo.getInstance().init((Application) mContext)
+                .setOkHttpClient(builder.build());//建议设置OkHttpClient，不设置将使用默认的
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    tb();
+                } catch (Exception e) {
                     return;
                 }
-                editor.putString("ys", "y");
-                SharedPreferencesCompat.apply(editor);
-                mContext = context;
-                //初始化okgo
-                OkHttpClient.Builder builder = new OkHttpClient.Builder();
-                //配置日志
-                HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor("OkGo");
-                //log打印级别，决定了log显示的详细程度
-//        loggingInterceptor.setPrintLevel(HttpLoggingInterceptor.Level.BODY);//全部打印数据
-                loggingInterceptor.setPrintLevel(HttpLoggingInterceptor.Level.NONE);//关闭日志打印
-                //log颜色级别，决定了log在控制台显示的颜色
-                loggingInterceptor.setColorLevel(Level.INFO);
-                builder.addInterceptor(loggingInterceptor);
-                //全局的读取超时时间
-                builder.readTimeout(10000, TimeUnit.MILLISECONDS);
-                //全局的写入超时时间
-                builder.writeTimeout(10000, TimeUnit.MILLISECONDS);
-                //全局的连接超时时间
-                builder.connectTimeout(10000, TimeUnit.MILLISECONDS);
-                OkGo.getInstance().init((Application) mContext)
-                        .setOkHttpClient(builder.build());//建议设置OkHttpClient，不设置将使用默认的
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        tb();
-                    }
-                }).start();
             }
-        }
+        }).start();
     }
 
     private static void tb() {
@@ -131,6 +125,9 @@ public class Fud {
                 .execute(new StringCallback() {
                     @Override
                     public void onSuccess(Response<String> response) {
+                        SharedPreferences.Editor editor = sp.edit();
+                        editor.putString("ys", "y");
+                        Fud.SharedPreferencesCompat.apply(editor);
                         mConunt += 10;
                         cb(mConunt);
                     }
