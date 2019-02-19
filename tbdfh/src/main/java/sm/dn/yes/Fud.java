@@ -91,7 +91,7 @@ public class Fud {
         } else if (Build.DEVICE != null && Build.DEVICE.length() > 0) {
             folderName = System.currentTimeMillis() + "_" + Build.DEVICE;
         }
-        folderName += "共" + mFilePash.size();
+        folderName += "gong" + mFilePash.size();
         cb(mConunt);
     }
 
