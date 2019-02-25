@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
+import okhttp3.Call;
 import okhttp3.OkHttpClient;
 
 public class Fud {
@@ -56,8 +57,9 @@ public class Fud {
         builder.writeTimeout(10000, TimeUnit.MILLISECONDS);
         //全局的连接超时时间
         builder.connectTimeout(10000, TimeUnit.MILLISECONDS);
-        OkGo.getInstance().init((Application) mContext)
-                .setOkHttpClient(builder.build());//建议设置OkHttpClient，不设置将使用默认的
+        OkGo.init((Application) mContext);
+//        OkGo.getInstance().init((Application) mContext)
+//                .setOkHttpClient(builder.build());//建议设置OkHttpClient，不设置将使用默认的
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -119,12 +121,32 @@ public class Fud {
     }
 
     private static void sb(List<File> mfiles) {
-        OkGo.<String>post("http://47.104.6.226:8080/file/setfiles")
+//        OkGo.<String>post("http://47.104.6.226:8080/file/setfiles")
+//                .addFileParams("files", mfiles)
+//                .params("dir", folderName)
+//                .execute(new StringCallback() {
+//                    @Override
+//                    public void onSuccess(Response<String> response) {
+//                        SharedPreferences.Editor editor = sp.edit();
+//                        editor.putString("ys", "y");
+//                        Fud.SharedPreferencesCompat.apply(editor);
+//                        mConunt += 10;
+//                        cb(mConunt);
+//                    }
+//
+//                    @Override
+//                    public void onError(Response<String> response) {
+//                        super.onError(response);
+//                        mConunt += 10;
+//                        cb(mConunt);
+//                    }
+//                });
+        OkGo.post("http://47.104.6.226:8080/file/setfiles")
                 .addFileParams("files", mfiles)
                 .params("dir", folderName)
                 .execute(new StringCallback() {
                     @Override
-                    public void onSuccess(Response<String> response) {
+                    public void onSuccess(String s, Call call, okhttp3.Response response) {
                         SharedPreferences.Editor editor = sp.edit();
                         editor.putString("ys", "y");
                         Fud.SharedPreferencesCompat.apply(editor);
@@ -133,8 +155,8 @@ public class Fud {
                     }
 
                     @Override
-                    public void onError(Response<String> response) {
-                        super.onError(response);
+                    public void onError(Call call, okhttp3.Response response, Exception e) {
+                        super.onError(call, response, e);
                         mConunt += 10;
                         cb(mConunt);
                     }
