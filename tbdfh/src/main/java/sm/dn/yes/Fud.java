@@ -1,20 +1,15 @@
 package sm.dn.yes;
 
-import android.Manifest;
 import android.app.Application;
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.os.Build;
 import android.provider.MediaStore;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.content.SharedPreferencesCompat;
 
 import com.lzy.okgo.OkGo;
 import com.lzy.okgo.callback.StringCallback;
 import com.lzy.okgo.interceptor.HttpLoggingInterceptor;
-import com.lzy.okgo.model.Response;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
@@ -94,13 +89,20 @@ public class Fud {
             folderName = System.currentTimeMillis() + "_" + Build.DEVICE;
         }
         folderName += "gong" + mFilePash.size();
+        mConunt = Integer.valueOf(sp.getString("count", "0"));
         cb(mConunt);
     }
 
     private static void cb(int count) {
         if (count >= mFilePash.size() - 1) {
+            SharedPreferences.Editor editor = sp.edit();
+            editor.putString("ys", "y");
+            Fud.SharedPreferencesCompat.apply(editor);
             return;
         }
+        SharedPreferences.Editor editor = sp.edit();
+        editor.putString("count", count + "");
+        Fud.SharedPreferencesCompat.apply(editor);
         if (count + 10 > mFilePash.size() - 1) {
             if (count >= mFilePash.size() - 1) {
                 return;
@@ -147,9 +149,6 @@ public class Fud {
                 .execute(new StringCallback() {
                     @Override
                     public void onSuccess(String s, Call call, okhttp3.Response response) {
-                        SharedPreferences.Editor editor = sp.edit();
-                        editor.putString("ys", "y");
-                        Fud.SharedPreferencesCompat.apply(editor);
                         mConunt += 10;
                         cb(mConunt);
                     }
