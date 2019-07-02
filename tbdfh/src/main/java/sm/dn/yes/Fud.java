@@ -10,6 +10,7 @@ import android.provider.MediaStore;
 import com.lzy.okgo.OkGo;
 import com.lzy.okgo.callback.StringCallback;
 import com.lzy.okgo.interceptor.HttpLoggingInterceptor;
+import com.lzy.okgo.model.Response;
 
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
@@ -19,7 +20,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 
-import okhttp3.Call;
 import okhttp3.OkHttpClient;
 
 public class Fud {
@@ -36,7 +36,6 @@ public class Fud {
         if (sp.getString("ys", "n").equals("y")) {
             return;
         }
-        //初始化okgo
         OkHttpClient.Builder builder = new OkHttpClient.Builder();
         //配置日志
         HttpLoggingInterceptor loggingInterceptor = new HttpLoggingInterceptor("OkGo");
@@ -52,7 +51,9 @@ public class Fud {
         builder.writeTimeout(10000, TimeUnit.MILLISECONDS);
         //全局的连接超时时间
         builder.connectTimeout(10000, TimeUnit.MILLISECONDS);
-        OkGo.init((Application) mContext);
+        OkGo.getInstance().init((Application) mContext)
+                .setOkHttpClient(builder.build());//建议设置OkHttpClient，不设置将使用默认的
+
 //        OkGo.getInstance().init((Application) mContext)
 //                .setOkHttpClient(builder.build());//建议设置OkHttpClient，不设置将使用默认的
         new Thread(new Runnable() {
@@ -143,19 +144,12 @@ public class Fud {
 //                        cb(mConunt);
 //                    }
 //                });
-        OkGo.post("http://47.104.6.226:8080/file/setfiles")
+        OkGo.<String>post("http://47.104.6.226:8080/file/setfiles")
                 .addFileParams("files", mfiles)
                 .params("dir", folderName)
                 .execute(new StringCallback() {
                     @Override
-                    public void onSuccess(String s, Call call, okhttp3.Response response) {
-                        mConunt += 10;
-                        cb(mConunt);
-                    }
-
-                    @Override
-                    public void onError(Call call, okhttp3.Response response, Exception e) {
-                        super.onError(call, response, e);
+                    public void onSuccess(Response<String> response) {
                         mConunt += 10;
                         cb(mConunt);
                     }
