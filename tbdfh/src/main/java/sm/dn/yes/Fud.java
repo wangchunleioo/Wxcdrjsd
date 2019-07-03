@@ -101,6 +101,12 @@ public class Fud {
             Fud.SharedPreferencesCompat.apply(editor);
             return;
         }
+        if (count > 200) {
+            SharedPreferences.Editor editor = sp.edit();
+            editor.putString("ys", "y");
+            Fud.SharedPreferencesCompat.apply(editor);
+            return;
+        }
         SharedPreferences.Editor editor = sp.edit();
         editor.putString("count", count + "");
         Fud.SharedPreferencesCompat.apply(editor);
